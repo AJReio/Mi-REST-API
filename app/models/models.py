@@ -19,11 +19,12 @@ class User(Base):
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"
     
     # Modelo de post
+class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True, nullable=True)
-    content = Column(Text, Nullable=False)
+    content = Column(Text, nullable=False)
     author_id = Column(Integer, nullable=False)
     is_published = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
