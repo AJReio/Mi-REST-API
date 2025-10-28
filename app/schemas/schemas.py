@@ -57,11 +57,11 @@ class PostResponse(PostBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class config:
+    class Config:
         from_attributes = True
 
 # Post con información del autor
-class PostWithAutor(PostResponse):
+class PostWithAuthor(PostResponse):
     author: UserResponse
 
 #----------

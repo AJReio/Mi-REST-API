@@ -30,6 +30,13 @@ router = APIRouter(tags=["authentication"])
 @router.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
+# Límite de caracteres en la cointraseña.
+    if len(user_data.password) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña no puede tener más de 72 caracteres"
+        )
+
 # Verificar si el email del usuario ya existe
     db_user = get_user_by_email(db, email=user_data.email)
     if db_user:
@@ -55,12 +62,6 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password
     )
 
-# Límite de caracteres en la cointraseña.
-    if len(user_data.password) > 72:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La contraseña no puede tener más de 72 caracteres"
-        )
 
     db.add(db_user)
     db.commit()
