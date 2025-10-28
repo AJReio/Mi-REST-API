@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 # Registro
 class UserCreate(UserBase):
-    password= str = Field(..., min_length=6)
+    password: str = Field(..., min_length=6)
 
 # Actualizar
 class UserUpdate(BaseModel):
@@ -47,7 +47,7 @@ class PostCreate(PostBase):
 # Editar post
 class PostUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
-    content: Optional[dtr] = Field(None, min_length=1)
+    content: Optional[str] = Field(None, min_length=1)
     is_published: Optional[bool] = None
 
 # Responder post

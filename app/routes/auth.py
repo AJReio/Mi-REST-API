@@ -9,15 +9,16 @@ from app.auth.auth import (
     create_access_token,
     get_password_hash,
     get_user_by_email,
-    ACCESS_TOKEN_EXPIRE_MINUTES
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_current_active_user
 )
 from app.models.models import User
 from app.schemas.schemas import UserCreate, UserResponse, Token
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(tags=["authentication"])
 
 # Ruta de registro de usuario
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 # Verificar si el email del usuario ya existe
@@ -52,3 +53,37 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 # Ruta inicio de sesión.
+@router.post("/login", response_model=Token)
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario inactivo."
+        )
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
+# Ruta para obtener información del usuario actual
+@router.get("/me", response_model=UserResponse)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user

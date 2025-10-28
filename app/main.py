@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.database.database import engine, Base
 from app.models.models import User, Post
+from app.routes import auth
 
 # Crear tablas en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -9,18 +10,25 @@ Base.metadata.create_all(bind=engine)
 app =FastAPI(
     title="Mi API",
     description="API con modelos y esquemas implementados.",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
+
+# Incluir routers
+app.include_router(auth.router)
 
 # Ruta principal
 @app.get("/")
 def read_root():
-    return {"message": "Funciona, ready to commit.",
-            "status": "Modelos y esquemas configurados",
-            "endpoints": [
-                "/health - Estado del sistema",
-                "/docs - Documentación interactiva"
-            ]
+    return {
+        "message": "API con autentificación JWT funcionando.",
+        "endpoints_publicos":[
+            "GET / - Esta página."
+            "GET /health - Estado del sistema.",
+            "POST /auth/register - Registrar usuario.",
+            "POST /auth/login - Iniciar sesión."
+        ]
 }
 
 # Ruta de salud
@@ -28,9 +36,10 @@ def read_root():
 def health_check():
     return {"status": "healthy",
             "components": {
-                "batabase": "SQLite con SQLAlchemy.",
+                "database": "SQLite con SQLAlchemy.",
                 "models": "User y Post.",
-                "schemas": "Pydantic configurado."
+                "schemas": "Pydantic configurado.",
+                "authentication": "JWT con bcrypt"
             }}
 
 # Ruta de información
