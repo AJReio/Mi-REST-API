@@ -1,6 +1,9 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from typing import Optional
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer,  OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -14,6 +17,12 @@ from app.auth.auth import (
 )
 from app.models.models import User
 from app.schemas.schemas import UserCreate, UserResponse, Token
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
 
 router = APIRouter(tags=["authentication"])
 
@@ -46,6 +55,13 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hashed_password
     )
 
+# Límite de caracteres en la cointraseña.
+    if len(user_data.password) > 72:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña no puede tener más de 72 caracteres"
+        )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -53,7 +69,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 # Ruta inicio de sesión.
-@router.post("/login", response_model=Token)
+@router.post("/auth/login", response_model=Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -62,7 +78,7 @@ def login(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos",
+            detail="Usuario o contraseña incorrectos.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -84,6 +100,7 @@ def login(
     }
 
 # Ruta para obtener información del usuario actual
-@router.get("/me", response_model=UserResponse)
+@router.get("/auth/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
+
