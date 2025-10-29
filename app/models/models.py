@@ -23,7 +23,7 @@ class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True, nullable=True)
+    title = Column(String, index=True, nullable=False)
     content = Column(Text, nullable=False)
     author_id = Column(Integer, nullable=False)
     is_published = Column(Boolean, default=True)

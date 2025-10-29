@@ -24,7 +24,7 @@ def read_root():
     return {
         "message": "API con autentificación JWT funcionando.",
         "endpoints_publicos":[
-            "GET / - Esta página."
+            "GET / - Esta página.",
             "GET /health - Estado del sistema.",
             "POST /auth/register - Registrar usuario.",
             "POST /auth/login - Iniciar sesión."

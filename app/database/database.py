@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
+# Cargar variables de entorno
 load_dotenv()
 
 # URL base de datos (SQLite)
